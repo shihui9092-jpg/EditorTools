@@ -37,7 +37,7 @@ public class TextureSizeCheckWindow : EditorWindow
     private Vector2 _scroll;
     private long _totalDiskBytes;
 
-    [MenuItem("Tools/资源检测/贴图大小检测工具")]
+    [MenuItem("Tools/MinoTools/贴图检测/贴图大小检测工具")]
     public static void Open()
     {
         TextureSizeCheckWindow window = GetWindow<TextureSizeCheckWindow>("贴图大小检测");

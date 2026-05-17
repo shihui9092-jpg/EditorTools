@@ -50,7 +50,7 @@ public class OneClickFileRenamerWindow : EditorWindow
     private readonly List<RenamePreview> _previewList = new List<RenamePreview>();
     private string _regexError = string.Empty;
 
-    [MenuItem("Tools/命名工具/一键更改文件名")]
+    [MenuItem("Tools/MinoTools/命名工具/一键更改文件名")]
     public static void Open()
     {
         OneClickFileRenamerWindow window = GetWindow<OneClickFileRenamerWindow>("一键命名");

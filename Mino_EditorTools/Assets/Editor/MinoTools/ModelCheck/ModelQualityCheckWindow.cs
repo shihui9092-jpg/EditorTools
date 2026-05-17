@@ -72,7 +72,7 @@ public class ModelQualityCheckWindow : EditorWindow
     private int _totalVertices;
     private int _totalOverlappedVertices;
 
-    [MenuItem("Tools/模型检测/模型基础检测工具")]
+    [MenuItem("Tools/MinoTools/模型检测/模型基础检测工具")]
     public static void Open()
     {
         ModelQualityCheckWindow window = GetWindow<ModelQualityCheckWindow>("模型基础检测");
