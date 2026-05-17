@@ -1,0 +1,12 @@
+{
+    "enabled": false,
+    "port": 8765,
+    "toolExportProfile": "core",
+    "coreToolsCustom": false,
+    "coreTools": [],
+    "fullToolsCustom": false,
+    "fullTools": [],
+    "selectedConfigTarget": "Claude Code",
+    "pluginDebugLoggingEnabled": true,
+    "pluginDebugLoggingConfigured": true
+}
