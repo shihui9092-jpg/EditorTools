@@ -1,0 +1,10 @@
+{
+	"folders": [
+		{
+			"path": "Mino_EditorTools"
+		}
+	],
+	"settings": {
+		"dotnet.defaultSolution": "Mino_EditorTools.sln"
+	}
+}
