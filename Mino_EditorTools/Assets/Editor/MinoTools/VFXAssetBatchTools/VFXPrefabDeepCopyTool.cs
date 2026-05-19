@@ -63,7 +63,6 @@ namespace ETools
         /// 动画容器链表信息
         /// </summary>
         static Dictionary<string, string> animDic = new Dictionary<string, string>();
-        static string Suffix_FBX = ".FBX";
         /// <summary>
         /// 
         /// </summary>
@@ -112,9 +111,7 @@ namespace ETools
             }
             GameObject obj = objs[0];
 
-            PrefabType prefabType = PrefabUtility.GetPrefabType(obj);
-            //Debug.Log("prefabType : " + prefabType);
-            if (prefabType != PrefabType.Prefab)
+            if (!PrefabUtility.IsPartOfPrefabAsset(obj))
             {
                 EditorUtility.DisplayDialog("警告", "请选择 preject 视图中prefab 资源", "确定", "取消");
                 return;
