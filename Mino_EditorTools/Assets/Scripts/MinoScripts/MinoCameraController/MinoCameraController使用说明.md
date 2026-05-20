@@ -162,6 +162,8 @@ Inspector 顶部两个按钮：
 
 - `MinoCameraController` 全部可序列化字段（含机位列表、轨道参数、录制选项等）；
 - 同 GameObject 上 **Camera** 组件的全部可序列化字段；
+- 相机 **Transform** 本地 `position` / `rotation`（欧拉角）/ `scale`；
+- 当前 **运行时轨道状态**：`orbitYaw`、`orbitPitch`、`smoothedOrbitDistance`（拖拽/滚轮后的即时镜头，不仅限于机位列表）；
 - GameObject 的 **Tag**、**Layer**；
 - `orbitFocus` / `displayTarget` / `mainLightTransform` 使用 **GlobalObjectId** 单独保存。
 
@@ -169,6 +171,7 @@ Inspector 顶部两个按钮：
 
 - 同场景导入时引用通常可自动恢复；**跨场景**若对象不存在会提示并在 Inspector 中手动重绑。
 - 运行模式下导入同样生效，退出 Play 前请保存场景或 Prefab。
+- **旧版** `.minocamera.json`（无 Transform / 运行时轨道字段）仍可导入，行为与升级前一致；仅有 Transform 无轨道角时，会用 Transform 欧拉角初始化 yaw/pitch。
 
 导出路径（固定）：
 

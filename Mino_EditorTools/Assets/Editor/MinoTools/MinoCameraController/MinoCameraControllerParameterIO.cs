@@ -32,10 +32,18 @@ public static class MinoCameraControllerParameterIO
         public string gameObjectTag;
         public bool hasGameObjectLayer;
         public int gameObjectLayer;
+        public bool hasTransform;
+        public Vector3 localPosition;
+        public Vector3 localRotation;
+        public Vector3 localScale;
+        public bool hasRuntimeOrbit;
+        public float orbitYaw;
+        public float orbitPitch;
+        public float smoothedOrbitDistance;
     }
 
     /// <summary>
-    /// 导出当前参数到 CameraParameterProfiles 文件夹（含 MinoCameraController、同物体 Camera、Tag、Layer）。
+    /// 导出当前参数到 CameraParameterProfiles 文件夹（含 MinoCameraController、同物体 Camera、Transform、运行时轨道角、Tag、Layer）。
     /// </summary>
     public static bool ExportToConfigFile(MinoCameraController controller)
     {
@@ -167,6 +175,21 @@ public static class MinoCameraControllerParameterIO
             bundle.cameraComponentJson = EditorJsonUtility.ToJson(camera, true);
         }
 
+        Transform transform = gameObject.transform;
+        bundle.hasTransform = true;
+        bundle.localPosition = transform.localPosition;
+        bundle.localRotation = transform.localEulerAngles;
+        bundle.localScale = transform.localScale;
+
+        controller.CaptureRuntimeOrbitState(
+            out float orbitYaw,
+            out float orbitPitch,
+            out float smoothedOrbitDistance);
+        bundle.hasRuntimeOrbit = true;
+        bundle.orbitYaw = orbitYaw;
+        bundle.orbitPitch = orbitPitch;
+        bundle.smoothedOrbitDistance = smoothedOrbitDistance;
+
         return bundle;
     }
 
@@ -294,6 +317,34 @@ public static class MinoCameraControllerParameterIO
 
         serializedObject.ApplyModifiedProperties();
 
+        Transform transform = gameObject.transform;
+        if (bundle.hasTransform)
+        {
+            Undo.RecordObject(transform, undoName);
+            transform.localPosition = bundle.localPosition;
+            transform.localEulerAngles = bundle.localRotation;
+            transform.localScale = bundle.localScale;
+            EditorUtility.SetDirty(transform);
+        }
+
+        if (bundle.hasRuntimeOrbit)
+        {
+            controller.ApplyRuntimeOrbitState(
+                bundle.orbitYaw,
+                bundle.orbitPitch,
+                bundle.smoothedOrbitDistance,
+                applyTransformNow: true);
+        }
+        else if (bundle.hasTransform)
+        {
+            Vector3 eulerAngles = transform.localEulerAngles;
+            controller.ApplyRuntimeOrbitState(
+                eulerAngles.y,
+                eulerAngles.x,
+                controller.CurrentOrbitDistance,
+                applyTransformNow: false);
+        }
+
         if (camera != null && !string.IsNullOrEmpty(bundle.cameraComponentJson))
         {
             EditorUtility.SetDirty(camera);
@@ -302,6 +353,7 @@ public static class MinoCameraControllerParameterIO
         if (Application.isPlaying)
         {
             PrefabUtility.RecordPrefabInstancePropertyModifications(controller);
+            PrefabUtility.RecordPrefabInstancePropertyModifications(transform);
             if (camera != null)
             {
                 PrefabUtility.RecordPrefabInstancePropertyModifications(camera);

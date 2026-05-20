@@ -420,6 +420,33 @@ public class MinoCameraController : MonoBehaviour
         return preset;
     }
 
+    /// <summary>当前轨道距离（供参数导入兜底使用）。</summary>
+    public float CurrentOrbitDistance => orbitDistance;
+
+    /// <summary>读取当前运行时轨道状态（供参数导出使用）。</summary>
+    public void CaptureRuntimeOrbitState(out float yaw, out float pitch, out float smoothedDistance)
+    {
+        yaw = orbitYaw;
+        pitch = orbitPitch;
+        smoothedDistance = smoothedOrbitDistance;
+    }
+
+    /// <summary>写回运行时轨道状态（供参数导入使用）。</summary>
+    public void ApplyRuntimeOrbitState(float yaw, float pitch, float smoothedDistance, bool applyTransformNow = true)
+    {
+        orbitYaw = yaw;
+        orbitPitch = pitch;
+        smoothedOrbitDistance = smoothedDistance;
+        ClearMotionSpeeds();
+        wasLeftMousePressed = Input.GetMouseButton(0);
+        isDraggingTarget = false;
+
+        if (applyTransformNow && orbitFocus != null)
+        {
+            ApplyOrbitTransform();
+        }
+    }
+
     private void ApplyCurrentViewToPreset(MinoCameraPreset preset)
     {
         preset.worldPosition = transform.position;

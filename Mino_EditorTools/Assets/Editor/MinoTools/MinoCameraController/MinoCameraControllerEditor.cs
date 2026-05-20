@@ -178,10 +178,11 @@ public class MinoCameraControllerEditor : Editor
         }
 
         EditorGUILayout.HelpBox(
-            "导出：保存 MinoCameraController、同物体 Camera 组件全部可序列化字段，以及 GameObject 的 Tag / Layer。\n" +
+            "导出：保存 MinoCameraController、同物体 Camera 组件全部可序列化字段，相机 Transform（本地位置/旋转/缩放），\n" +
+            "当前运行时轨道角（orbitYaw / orbitPitch / smoothedOrbitDistance），以及 GameObject 的 Tag / Layer。\n" +
             "机位列表与 orbitFocus / displayTarget / mainLightTransform 引用使用 GlobalObjectId 保存。\n" +
             $"自动保存到 {MinoCameraControllerParameterIO.ExportProfilesAssetFolder}/。\n" +
-            "导入：打开上述目录，选择 .minocamera.json 覆盖当前挂载对象；跨场景引用缺失时需手动重绑。",
+            "导入：打开上述目录，选择 .minocamera.json 覆盖当前挂载对象；跨场景引用缺失时需手动重绑。旧版配置无 Transform 字段时行为与此前一致。",
             MessageType.Info);
     }
 
