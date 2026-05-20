@@ -2,438 +2,1041 @@ using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Serialization;
 
+/// <summary>
+/// 单个相机机位预设数据。
+/// </summary>
 [System.Serializable]
-public class CameraPreset
+public class MinoCameraPreset
 {
-    public Vector3 Pos;
-    public Vector3 RotateAngles;
-    public float height;
-    public float offset;
-    public float distance;
+    [Tooltip("相机世界坐标")]
+    [FormerlySerializedAs("Pos")]
+    public Vector3 worldPosition;
+
+    [Tooltip("轨道旋转角（x=俯仰，y=水平）")]
+    [FormerlySerializedAs("RotateAngles")]
+    public Vector3 eulerAngles;
+
+    [Tooltip("相对焦点的垂直偏移")]
+    [FormerlySerializedAs("height")]
+    public float orbitHeight;
+
+    [Tooltip("相对焦点的水平偏移")]
+    [FormerlySerializedAs("offset")]
+    public float orbitOffset;
+
+    [Tooltip("轨道距离（滚轮缩放目标值）")]
+    [FormerlySerializedAs("distance")]
+    public float orbitDistance;
 }
 
-public class CameraController : MonoBehaviour
+/// <summary>
+/// 可命名、可绑定快捷键的机位槽位。
+/// </summary>
+[System.Serializable]
+public class MinoCameraPresetSlot
 {
-    [Header("Targets")]
-    [SerializeField] private Transform targetFocus;
-    [SerializeField] private GameObject targetObj;
-    [SerializeField] private Transform mainLight;
-    [SerializeField] private Light rimLight;
+    [Tooltip("机位显示名称")]
+    public string presetName = "默认机位";
 
-    [Header("Interaction")]
-    [SerializeField] private bool EnableDragObject = false;
-    [SerializeField] private bool EnableRotateLight = false;
+    [Tooltip("按下该键切换到本机位；None 表示不绑定快捷键")]
+    public KeyCode activationKey = KeyCode.Alpha1;
 
-    [Header("Camera Orbit")]
-    [SerializeField] private float height = 0.0f;
-    [SerializeField] private float offset = 0.0f;
-    [SerializeField] private float distance = 3.5f;
-    [SerializeField, Range(0.1f, 4f)] private float ZoomWheelSpeed = 4.0f;
+    [Tooltip("镜头参数")]
+    public MinoCameraPreset view = new MinoCameraPreset();
+}
 
-    [SerializeField] private float minDistance = 1f;
-    [SerializeField] private float maxDistance = 4f;
-    [SerializeField] private float xSpeed = 250.0f;
-    [SerializeField] private float ySpeed = 120.0f;
-    [SerializeField] private float yMinLimit = -10;
-    [SerializeField] private float yMaxLimit = 60;
-    [SerializeField] private float objRotateSpeed = 500.0f;
+/// <summary>
+/// 角色展示场景用的轨道相机控制器。
+/// </summary>
+public class MinoCameraController : MonoBehaviour
+{
+    #region 目标引用
 
-    [Header("Camera Presets")]
-    [SerializeField] private List<CameraPreset> cameraPresets = new List<CameraPreset>();
-    // ���ݾɳ������ݣ�����ԭ 1~7 �ֶ�
-    [SerializeField] private CameraPreset CameraPresets1;
-    [SerializeField] private CameraPreset CameraPresets2;
-    [SerializeField] private CameraPreset CameraPresets3;
-    [SerializeField] private CameraPreset CameraPresets4;
-    [SerializeField] private CameraPreset CameraPresets5;
-    [SerializeField] private CameraPreset CameraPresets6;
-    [SerializeField] private CameraPreset CameraPresets7;
+    [Header("目标引用")]
+    [Tooltip("相机环绕的中心点")]
+    [SerializeField]
+    [FormerlySerializedAs("targetFocus")]
+    private Transform orbitFocus;
 
-    private float x = 0.0f;
-    private float y = 0.0f;
-    private float normalAngle = 0.0f;
-    private float curDistance = 0f;
-    private float curXSpeed = 0f;
-    private float curYSpeed = 0f;
-    private float reqXSpeed = 0f;
-    private float reqYSpeed = 0f;
-    private float curObjRotateSpeed = 0f;
-    private float reqObjRotateSpeed = 0f;
-    private bool draggingObject = false;
-    private bool lastLMBState = false;
+    [Tooltip("展示用的角色或模型根对象")]
+    [SerializeField]
+    [FormerlySerializedAs("targetObj")]
+    private GameObject displayTarget;
+
+    [Tooltip("主灯光 Transform（灯光旋转模式时使用）")]
+    [SerializeField]
+    [FormerlySerializedAs("mainLight")]
+    private Transform mainLightTransform;
+
+    #endregion
+
+    #region 交互设置
+
+    [Header("交互设置")]
+    [Tooltip("开启后，左键拖拽改为绕 Y 轴旋转展示对象或主灯")]
+    [SerializeField]
+    [FormerlySerializedAs("EnableDragObject")]
+    private bool enableDragRotateTarget;
+
+    [Tooltip("与上一项配合：为 true 时拖拽旋转主灯，否则旋转展示对象")]
+    [SerializeField]
+    [FormerlySerializedAs("EnableRotateLight")]
+    private bool enableDragRotateMainLight;
+
+    #endregion
+
+    #region 轨道相机
+
+    [Header("轨道相机")]
+    [Tooltip("相机相对焦点的高度偏移")]
+    [SerializeField]
+    [FormerlySerializedAs("height")]
+    private float orbitHeight;
+
+    [Tooltip("相机相对焦点的左右偏移")]
+    [SerializeField]
+    [FormerlySerializedAs("offset")]
+    private float orbitOffset;
+
+    [Tooltip("相机与焦点的轨道距离")]
+    [SerializeField]
+    [FormerlySerializedAs("distance")]
+    private float orbitDistance = 3.5f;
+
+    [Tooltip("滚轮缩放灵敏度")]
+    [SerializeField, Range(0.1f, 4f)]
+    [FormerlySerializedAs("ZoomWheelSpeed")]
+    private float scrollZoomSpeed = 4f;
+
+    [Tooltip("轨道距离下限")]
+    [SerializeField]
+    [FormerlySerializedAs("minDistance")]
+    private float minOrbitDistance = 1f;
+
+    [Tooltip("轨道距离上限")]
+    [SerializeField]
+    [FormerlySerializedAs("maxDistance")]
+    private float maxOrbitDistance = 4f;
+
+    [Tooltip("水平环绕速度")]
+    [SerializeField]
+    [FormerlySerializedAs("xSpeed")]
+    private float orbitYawSpeed = 250f;
+
+    [Tooltip("俯仰旋转速度")]
+    [SerializeField]
+    [FormerlySerializedAs("ySpeed")]
+    private float orbitPitchSpeed = 120f;
+
+    [Tooltip("俯仰角下限")]
+    [SerializeField]
+    [FormerlySerializedAs("yMinLimit")]
+    private float pitchMinLimit = -10f;
+
+    [Tooltip("俯仰角上限")]
+    [SerializeField]
+    [FormerlySerializedAs("yMaxLimit")]
+    private float pitchMaxLimit = 60f;
+
+    [Tooltip("拖拽旋转展示对象/主灯时的角速度")]
+    [SerializeField]
+    [FormerlySerializedAs("objRotateSpeed")]
+    private float targetYawRotateSpeed = 500f;
+
+    #endregion
+
+    #region 机位预设
+
+    [Header("机位预设")]
+    [Tooltip("机位槽位列表，可自定义名称与快捷键")]
+    [SerializeField]
+    private List<MinoCameraPresetSlot> cameraPresetSlots = new List<MinoCameraPresetSlot>();
+
+#if UNITY_EDITOR
+    [FormerlySerializedAs("cameraPresetList")]
+    [SerializeField, HideInInspector]
+    private List<MinoCameraPreset> legacyCameraPresetList;
+
+    [FormerlySerializedAs("CameraPresets1")] [SerializeField, HideInInspector] private MinoCameraPreset legacyPreset1;
+    [FormerlySerializedAs("CameraPresets2")] [SerializeField, HideInInspector] private MinoCameraPreset legacyPreset2;
+    [FormerlySerializedAs("CameraPresets3")] [SerializeField, HideInInspector] private MinoCameraPreset legacyPreset3;
+    [FormerlySerializedAs("CameraPresets4")] [SerializeField, HideInInspector] private MinoCameraPreset legacyPreset4;
+    [FormerlySerializedAs("CameraPresets5")] [SerializeField, HideInInspector] private MinoCameraPreset legacyPreset5;
+    [FormerlySerializedAs("CameraPresets6")] [SerializeField, HideInInspector] private MinoCameraPreset legacyPreset6;
+    [FormerlySerializedAs("CameraPresets7")] [SerializeField, HideInInspector] private MinoCameraPreset legacyPreset7;
+#endif
+
+    #endregion
+
+    #region 运行模式机位录制
+
+    [Header("运行模式机位录制")]
+    [Tooltip("为 true 时冻结当前镜头，不再响应拖拽/轨道更新，便于保存机位")]
+    [SerializeField]
+    private bool isCameraLocked;
+
+    [Tooltip("运行模式下保存机位时使用的槽位下标")]
+    [SerializeField]
+    private int capturePresetIndex;
+
+    #endregion
+
+    #region 运行时状态
+
+    // 当前轨道欧拉角（y=水平，x=俯仰）
+    private float orbitYaw;
+    private float orbitPitch;
+
+    // 外部可叠加的俯仰基准偏移
+    private float pitchAngleOffset;
+
+    private float smoothedOrbitDistance;
+    private float currentYawSpeed;
+    private float currentPitchSpeed;
+    private float requestedYawSpeed;
+    private float requestedPitchSpeed;
+    private float currentTargetYawSpeed;
+    private float requestedTargetYawSpeed;
+    private bool isDraggingTarget;
+    private bool wasLeftMousePressed;
     private Collider[] surfaceColliders;
-    private float boundsMaxSize = 20f;
-    private bool isWet = false;
-    private Quaternion charRotation;
-    private Quaternion lightRotation;
-    private Sequence activePresetSequence;
+    private float targetBoundsMaxSize = 20f;
+    private Quaternion initialTargetRotation;
+    private Quaternion initialMainLightRotation;
+    private Sequence activePresetTween;
 
-    [HideInInspector] public bool disableSteering = false;
-    [HideInInspector] public bool isApplyingCameraPreset = false;
+    // UI 射线检测缓存，避免每帧分配 List 与重复查询 Layer
+    private static int cachedUiLayer = -1;
+    private readonly List<RaycastResult> uiRaycastResultsCache = new List<RaycastResult>();
+
+    /// <summary>为 true 时禁止鼠标操控相机与对象。</summary>
+    [HideInInspector]
+    [FormerlySerializedAs("disableSteering")]
+    public bool disableInput;
+
+    /// <summary>为 true 时表示正在播放机位过渡动画。</summary>
+    [HideInInspector]
+    [FormerlySerializedAs("isApplyingCameraPreset")]
+    public bool isPresetTransitioning;
+
+    #endregion
 
     private void Start()
     {
         Vector3 angles = transform.eulerAngles;
-        x = angles.y;
-        y = angles.x;
+        orbitYaw = angles.y;
+        orbitPitch = angles.x;
 
-        if (targetObj != null && mainLight != null)
+        if (displayTarget != null && mainLightTransform != null)
         {
-            charRotation = targetObj.transform.rotation;
-            lightRotation = mainLight.rotation;
+            initialTargetRotation = displayTarget.transform.rotation;
+            initialMainLightRotation = mainLightTransform.rotation;
         }
 
-        if (rimLight == null)
-        {
-            GameObject rimLightObject = GameObject.Find("RimLight");
-            if (rimLightObject != null)
-            {
-                rimLight = rimLightObject.GetComponent<Light>();
-            }
-        }
-
-        Reset();
+        EnsureDefaultPresetSlots();
+        ClampCapturePresetIndex();
+        ResetCameraState();
     }
+
+    private void OnDestroy()
+    {
+        activePresetTween?.Kill();
+        activePresetTween = null;
+        isPresetTransitioning = false;
+    }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        TryMigrateAllLegacyPresets();
+        EnsureDefaultPresetSlots();
+        ClampCapturePresetIndex();
+        ValidateDuplicateActivationKeys();
+    }
+#endif
 
     private void LateUpdate()
     {
-        HandlePresetHotkeys();
+        bool isPointerOverUi = IsPointerOverUIElement();
+        bool isMouseOverGameView = IsMouseOverGameView();
 
-        bool isOverUI = IsPointerOverUIElement();
-        bool isMouseOverGameWindow = IsMouseOverGameWindow();
-
-        if (isMouseOverGameWindow)
+        if (isMouseOverGameView)
         {
             HandleRuntimeHotkeys();
         }
 
-        if (ShouldBlockSteeringByCorner())
+        if (isCameraLocked)
         {
             return;
         }
 
-        if (CanHandleSteering(isMouseOverGameWindow, isOverUI))
+        HandlePresetHotkeys();
+
+        if (ShouldBlockInputInTopLeftCorner())
         {
-            HandleDragSteering();
+            return;
         }
 
-        UpdateDistanceBySurfaceCollision();
-        ApplyCameraTransform();
-    }
-
-    public void DisableSteering(bool state)
-    {
-        disableSteering = state;
-    }
-
-    public void Reset()
-    {
-        lastLMBState = Input.GetMouseButton(0);
-        disableSteering = false;
-
-        curDistance = distance;
-        curXSpeed = 0f;
-        curYSpeed = 0f;
-        reqXSpeed = 0f;
-        reqYSpeed = 0f;
-        curObjRotateSpeed = 0f;
-        reqObjRotateSpeed = 0f;
-        surfaceColliders = null;
-
-        if (targetObj != null)
+        if (CanHandleInput(isMouseOverGameView, isPointerOverUi))
         {
-            Renderer[] renderers = targetObj.GetComponentsInChildren<Renderer>();
-            Bounds bounds = new Bounds();
-            bool initedBounds = false;
-            foreach (Renderer rend in renderers)
+            HandleDragInput();
+        }
+
+        UpdateSmoothedDistanceByCollision();
+        ApplyOrbitTransform();
+    }
+
+    /// <summary>运行模式下是否已锁定相机（冻结当前镜头）。</summary>
+    public bool IsCameraLocked => isCameraLocked;
+
+    /// <summary>当前机位槽位数量。</summary>
+    public int PresetSlotCount => cameraPresetSlots != null ? cameraPresetSlots.Count : 0;
+
+    /// <summary>获取/设置运行模式保存机位时使用的槽位下标。</summary>
+    public int CapturePresetIndex
+    {
+        get => capturePresetIndex;
+        set
+        {
+            capturePresetIndex = value;
+            ClampCapturePresetIndex();
+        }
+    }
+
+    /// <summary>获取指定槽位（越界返回 null）。</summary>
+    public MinoCameraPresetSlot GetPresetSlot(int index)
+    {
+        if (cameraPresetSlots == null || index < 0 || index >= cameraPresetSlots.Count)
+        {
+            return null;
+        }
+
+        return cameraPresetSlots[index];
+    }
+
+    /// <summary>添加新机位槽位。</summary>
+    public MinoCameraPresetSlot AddPresetSlot(string name, KeyCode activationKey = KeyCode.None)
+    {
+        EnsurePresetSlotsInitialized();
+        if (activationKey == KeyCode.None)
+        {
+            activationKey = FindUnusedActivationKey();
+        }
+
+        MinoCameraPresetSlot slot = new MinoCameraPresetSlot
+        {
+            presetName = string.IsNullOrWhiteSpace(name) ? $"机位{cameraPresetSlots.Count + 1}" : name,
+            activationKey = activationKey,
+            view = new MinoCameraPreset()
+        };
+        cameraPresetSlots.Add(slot);
+        ClampCapturePresetIndex();
+
+#if UNITY_EDITOR
+        UnityEditor.EditorUtility.SetDirty(this);
+#endif
+        return slot;
+    }
+
+    /// <summary>删除机位槽位（至少保留 1 个）。</summary>
+    public bool RemovePresetSlot(int index)
+    {
+        if (cameraPresetSlots == null || cameraPresetSlots.Count <= 1)
+        {
+            return false;
+        }
+
+        if (index < 0 || index >= cameraPresetSlots.Count)
+        {
+            return false;
+        }
+
+        cameraPresetSlots.RemoveAt(index);
+        ClampCapturePresetIndex();
+
+#if UNITY_EDITOR
+        UnityEditor.EditorUtility.SetDirty(this);
+#endif
+        return true;
+    }
+
+    /// <summary>锁定或解锁相机。锁定后停止轨道更新与输入操控。</summary>
+    public void SetCameraLocked(bool locked)
+    {
+        isCameraLocked = locked;
+
+        if (locked)
+        {
+            if (activePresetTween != null && activePresetTween.IsActive())
             {
-                if (!initedBounds)
-                {
-                    initedBounds = true;
-                    bounds = rend.bounds;
-                }
-                else
-                {
-                    bounds.Encapsulate(rend.bounds);
-                }
+                activePresetTween.Kill();
             }
 
-            Vector3 size = bounds.size;
-            float dist = Mathf.Max(size.x, Mathf.Max(size.y, size.z));
-            boundsMaxSize = dist;
-            curDistance += boundsMaxSize * 1.2f;
-            surfaceColliders = targetObj.GetComponentsInChildren<Collider>();
+            isPresetTransitioning = false;
+            disableInput = true;
+            ClearMotionSpeeds();
+        }
+        else
+        {
+            disableInput = false;
         }
     }
 
-    public void SetNormalAngle(float angle)
+    /// <summary>将当前镜头参数写入指定机位槽位。</summary>
+    public bool CaptureCurrentViewToPreset(int presetIndex)
     {
-        normalAngle = angle;
+        MinoCameraPresetSlot slot = GetPresetSlot(presetIndex);
+        if (slot == null)
+        {
+            return false;
+        }
+
+        if (slot.view == null)
+        {
+            slot.view = new MinoCameraPreset();
+        }
+
+        ApplyCurrentViewToPreset(slot.view);
+
+#if UNITY_EDITOR
+        UnityEditor.EditorUtility.SetDirty(this);
+#endif
+        return true;
     }
 
+    /// <summary>将当前镜头参数写入 <see cref="capturePresetIndex"/> 指定的机位。</summary>
+    public bool CaptureCurrentViewToSelectedPreset()
+    {
+        return CaptureCurrentViewToPreset(capturePresetIndex);
+    }
+
+    /// <summary>生成当前镜头参数快照（不写入列表）。</summary>
+    public MinoCameraPreset CreatePresetFromCurrentView()
+    {
+        MinoCameraPreset preset = new MinoCameraPreset();
+        ApplyCurrentViewToPreset(preset);
+        return preset;
+    }
+
+    private void ApplyCurrentViewToPreset(MinoCameraPreset preset)
+    {
+        preset.worldPosition = transform.position;
+        preset.eulerAngles = new Vector3(orbitPitch, orbitYaw, 0f);
+        preset.orbitHeight = orbitHeight;
+        preset.orbitOffset = orbitOffset;
+        preset.orbitDistance = orbitDistance;
+    }
+
+    private void EnsurePresetSlotsInitialized()
+    {
+        if (cameraPresetSlots == null)
+        {
+            cameraPresetSlots = new List<MinoCameraPresetSlot>();
+        }
+    }
+
+    private void EnsureDefaultPresetSlots()
+    {
+        EnsurePresetSlotsInitialized();
+        if (cameraPresetSlots.Count > 0)
+        {
+            return;
+        }
+
+        cameraPresetSlots.Add(CreateDefaultPresetSlot());
+    }
+
+    private static MinoCameraPresetSlot CreateDefaultPresetSlot()
+    {
+        return new MinoCameraPresetSlot
+        {
+            presetName = "默认机位",
+            activationKey = KeyCode.Alpha1,
+            view = new MinoCameraPreset()
+        };
+    }
+
+    private void ClampCapturePresetIndex()
+    {
+        if (PresetSlotCount == 0)
+        {
+            capturePresetIndex = 0;
+            return;
+        }
+
+        capturePresetIndex = Mathf.Clamp(capturePresetIndex, 0, PresetSlotCount - 1);
+    }
+
+    private static KeyCode GetSuggestedKeyForSlotIndex(int index)
+    {
+        if (index >= 0 && index <= 8)
+        {
+            return KeyCode.Alpha1 + index;
+        }
+
+        if (index >= 9 && index <= 18)
+        {
+            return KeyCode.F1 + (index - 9);
+        }
+
+        return KeyCode.None;
+    }
+
+    private KeyCode FindUnusedActivationKey()
+    {
+        for (int i = 0; i < 32; i++)
+        {
+            KeyCode key = GetSuggestedKeyForSlotIndex(i);
+            if (key == KeyCode.None)
+            {
+                break;
+            }
+
+            if (!IsActivationKeyUsed(key))
+            {
+                return key;
+            }
+        }
+
+        return KeyCode.None;
+    }
+
+    private bool IsActivationKeyUsed(KeyCode key)
+    {
+        if (cameraPresetSlots == null || key == KeyCode.None)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < cameraPresetSlots.Count; i++)
+        {
+            if (cameraPresetSlots[i] != null && cameraPresetSlots[i].activationKey == key)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsShiftHeld()
+    {
+        return Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+    }
+
+    private void ClearMotionSpeeds()
+    {
+        currentYawSpeed = 0f;
+        currentPitchSpeed = 0f;
+        requestedYawSpeed = 0f;
+        requestedPitchSpeed = 0f;
+        currentTargetYawSpeed = 0f;
+        requestedTargetYawSpeed = 0f;
+    }
+
+    /// <summary>设置是否允许鼠标操控。</summary>
+    public void SetInputEnabled(bool enabled)
+    {
+        disableInput = !enabled;
+    }
+
+    /// <summary>兼容旧接口：禁用或启用操控。</summary>
+    public void DisableSteering(bool disabled)
+    {
+        disableInput = disabled;
+    }
+
+    /// <summary>重置轨道距离、碰撞缓存与速度状态。</summary>
+    public void ResetCameraState()
+    {
+        wasLeftMousePressed = Input.GetMouseButton(0);
+        disableInput = false;
+
+        smoothedOrbitDistance = orbitDistance;
+        currentYawSpeed = 0f;
+        currentPitchSpeed = 0f;
+        requestedYawSpeed = 0f;
+        requestedPitchSpeed = 0f;
+        currentTargetYawSpeed = 0f;
+        requestedTargetYawSpeed = 0f;
+        surfaceColliders = null;
+
+        if (displayTarget == null)
+        {
+            return;
+        }
+
+        Renderer[] renderers = displayTarget.GetComponentsInChildren<Renderer>();
+        Bounds bounds = new Bounds();
+        bool hasBounds = false;
+        foreach (Renderer renderer in renderers)
+        {
+            if (!hasBounds)
+            {
+                hasBounds = true;
+                bounds = renderer.bounds;
+            }
+            else
+            {
+                bounds.Encapsulate(renderer.bounds);
+            }
+        }
+
+        Vector3 size = bounds.size;
+        float maxAxis = Mathf.Max(size.x, Mathf.Max(size.y, size.z));
+        targetBoundsMaxSize = maxAxis;
+        smoothedOrbitDistance += targetBoundsMaxSize * 1.2f;
+        surfaceColliders = displayTarget.GetComponentsInChildren<Collider>();
+    }
+
+    /// <summary>兼容旧接口。</summary>
+    public void Reset()
+    {
+        ResetCameraState();
+    }
+
+    /// <summary>设置俯仰限制的基准偏移角。</summary>
+    public void SetPitchAngleOffset(float angle)
+    {
+        pitchAngleOffset = angle;
+    }
+
+    /// <summary>兼容旧接口。</summary>
+    public void SetNormalAngle(float angle)
+    {
+        SetPitchAngleOffset(angle);
+    }
+
+    /// <summary>兼容旧接口。</summary>
     public void set_normal_angle(float angle)
     {
-        SetNormalAngle(angle);
+        SetPitchAngleOffset(angle);
     }
 
     private void HandlePresetHotkeys()
     {
-        if (Input.GetKeyDown(KeyCode.Alpha1)) ApplyCameraPreset(GetPresetByHotkeyIndex(0));
-        if (Input.GetKeyDown(KeyCode.Alpha2)) ApplyCameraPreset(GetPresetByHotkeyIndex(1));
-        if (Input.GetKeyDown(KeyCode.Alpha3)) ApplyCameraPreset(GetPresetByHotkeyIndex(2));
-        if (Input.GetKeyDown(KeyCode.Alpha4)) ApplyCameraPreset(GetPresetByHotkeyIndex(3));
-        if (Input.GetKeyDown(KeyCode.Alpha5)) ApplyCameraPreset(GetPresetByHotkeyIndex(4));
-        if (Input.GetKeyDown(KeyCode.Alpha6)) ApplyCameraPreset(GetPresetByHotkeyIndex(5));
-        if (Input.GetKeyDown(KeyCode.Alpha7)) ApplyCameraPreset(GetPresetByHotkeyIndex(6));
+        if (cameraPresetSlots == null || IsShiftHeld())
+        {
+            return;
+        }
+
+        for (int i = 0; i < cameraPresetSlots.Count; i++)
+        {
+            MinoCameraPresetSlot slot = cameraPresetSlots[i];
+            if (slot == null || slot.activationKey == KeyCode.None)
+            {
+                continue;
+            }
+
+            if (Input.GetKeyDown(slot.activationKey))
+            {
+                if (slot.view != null)
+                {
+                    ApplyCameraPreset(slot.view);
+                }
+
+                break;
+            }
+        }
     }
 
     private void HandleRuntimeHotkeys()
     {
-        if (Input.GetKey(KeyCode.UpArrow)) height += 0.005f;
-        if (Input.GetKey(KeyCode.DownArrow)) height -= 0.005f;
-        if (Input.GetKey(KeyCode.LeftArrow)) offset -= 0.005f;
-        if (Input.GetKey(KeyCode.RightArrow)) offset += 0.005f;
+        if (Input.GetKey(KeyCode.UpArrow))
+        {
+            orbitHeight += 0.005f;
+        }
+
+        if (Input.GetKey(KeyCode.DownArrow))
+        {
+            orbitHeight -= 0.005f;
+        }
+
+        if (Input.GetKey(KeyCode.LeftArrow))
+        {
+            orbitOffset -= 0.005f;
+        }
+
+        if (Input.GetKey(KeyCode.RightArrow))
+        {
+            orbitOffset += 0.005f;
+        }
 
         if (Input.GetKeyDown(KeyCode.R))
         {
-            ResetCharAndLighting();
+            ResetTargetAndLightRotation();
         }
 
-        if (Input.GetKeyDown(KeyCode.J))
+        if (Input.GetKeyDown(KeyCode.L))
         {
-            EnableDragObject = !EnableDragObject;
+            SetCameraLocked(!isCameraLocked);
         }
 
-        if (Input.GetKeyDown(KeyCode.K))
+        if (!IsShiftHeld() || cameraPresetSlots == null)
         {
-            EnableRotateLight = !EnableRotateLight;
+            return;
         }
 
-        if (Input.GetKeyDown(KeyCode.B) && rimLight != null)
+        for (int i = 0; i < cameraPresetSlots.Count; i++)
         {
-            rimLight.enabled = !rimLight.enabled;
-        }
+            MinoCameraPresetSlot slot = cameraPresetSlots[i];
+            if (slot == null || slot.activationKey == KeyCode.None)
+            {
+                continue;
+            }
 
-        if (Input.GetKeyDown(KeyCode.W))
-        {
-            isWet = !isWet;
-            Shader.SetGlobalFloat("RainGlobal", isWet ? 1.0f : 0.0f);
+            if (Input.GetKeyDown(slot.activationKey))
+            {
+                CaptureCurrentViewToPreset(i);
+                capturePresetIndex = i;
+                break;
+            }
         }
     }
 
-    private bool IsMouseOverGameWindow()
+    private static bool IsMouseOverGameView()
     {
         Vector3 mousePos = Input.mousePosition;
-        return !(mousePos.x < 0 || mousePos.y < 0 || mousePos.x > Screen.width || mousePos.y > Screen.height);
+        return mousePos.x >= 0 && mousePos.y >= 0 && mousePos.x <= Screen.width && mousePos.y <= Screen.height;
     }
 
-    private bool ShouldBlockSteeringByCorner()
+    /// <summary>屏蔽左上角区域输入，避免与叠加 UI 冲突。</summary>
+    private static bool ShouldBlockInputInTopLeftCorner()
     {
         Vector3 mousePosition = Input.mousePosition;
-        return mousePosition.x < Screen.width / 3f && mousePosition.y > (Screen.height - Screen.height / 3f);
+        return mousePosition.x < Screen.width / 3f && mousePosition.y > Screen.height * 2f / 3f;
     }
 
-    private bool CanHandleSteering(bool isMouseOverGameWindow, bool isOverUI)
+    private bool CanHandleInput(bool isMouseOverGameView, bool isPointerOverUi)
     {
-        return targetObj != null && targetFocus != null && isMouseOverGameWindow && !isOverUI && !isApplyingCameraPreset;
+        return displayTarget != null
+            && orbitFocus != null
+            && isMouseOverGameView
+            && !isPointerOverUi
+            && !isPresetTransitioning;
     }
 
-    private void HandleDragSteering()
+    private void HandleDragInput()
     {
-        UpdateDraggingState();
+        UpdateDragModeOnMouseDown();
 
-        if (draggingObject)
+        if (isDraggingTarget)
         {
-            if (Input.GetMouseButton(0) && !disableSteering)
+            if (Input.GetMouseButton(0) && !disableInput)
             {
-                reqObjRotateSpeed += (Input.GetAxis("Mouse X") * objRotateSpeed * 0.02f - reqObjRotateSpeed) * Time.deltaTime * 10f;
+                requestedTargetYawSpeed += (Input.GetAxis("Mouse X") * targetYawRotateSpeed * 0.02f - requestedTargetYawSpeed) * Time.deltaTime * 10f;
             }
             else
             {
-                reqObjRotateSpeed += (0f - reqObjRotateSpeed) * Time.deltaTime * 4f;
+                requestedTargetYawSpeed += (0f - requestedTargetYawSpeed) * Time.deltaTime * 4f;
             }
 
-            reqXSpeed += (0f - reqXSpeed) * Time.deltaTime * 4f;
-            reqYSpeed += (0f - reqYSpeed) * Time.deltaTime * 4f;
+            requestedYawSpeed += (0f - requestedYawSpeed) * Time.deltaTime * 4f;
+            requestedPitchSpeed += (0f - requestedPitchSpeed) * Time.deltaTime * 4f;
         }
         else
         {
-            if (Input.GetMouseButton(0) && !disableSteering)
+            if (Input.GetMouseButton(0) && !disableInput)
             {
-                reqXSpeed += (Input.GetAxis("Mouse X") * xSpeed * 0.02f - reqXSpeed) * Time.deltaTime * 10f;
-                reqYSpeed += (Input.GetAxis("Mouse Y") * ySpeed * 0.02f - reqYSpeed) * Time.deltaTime * 10f;
+                requestedYawSpeed += (Input.GetAxis("Mouse X") * orbitYawSpeed * 0.02f - requestedYawSpeed) * Time.deltaTime * 10f;
+                requestedPitchSpeed += (Input.GetAxis("Mouse Y") * orbitPitchSpeed * 0.02f - requestedPitchSpeed) * Time.deltaTime * 10f;
             }
             else
             {
-                reqXSpeed += (0f - reqXSpeed) * Time.deltaTime * 4f;
-                reqYSpeed += (0f - reqYSpeed) * Time.deltaTime * 4f;
+                requestedYawSpeed += (0f - requestedYawSpeed) * Time.deltaTime * 4f;
+                requestedPitchSpeed += (0f - requestedPitchSpeed) * Time.deltaTime * 4f;
             }
 
-            reqObjRotateSpeed += (0f - reqObjRotateSpeed) * Time.deltaTime * 4f;
-            if (EnableDragObject)
+            requestedTargetYawSpeed += (0f - requestedTargetYawSpeed) * Time.deltaTime * 4f;
+            if (enableDragRotateTarget)
             {
-                reqObjRotateSpeed = 0f;
-                curObjRotateSpeed = 0f;
+                requestedTargetYawSpeed = 0f;
+                currentTargetYawSpeed = 0f;
             }
         }
 
-        curObjRotateSpeed += (reqObjRotateSpeed - curObjRotateSpeed) * Time.deltaTime * 20f;
-        if (EnableDragObject)
+        currentTargetYawSpeed += (requestedTargetYawSpeed - currentTargetYawSpeed) * Time.deltaTime * 20f;
+        if (enableDragRotateTarget)
         {
-            if (EnableRotateLight && mainLight != null)
+            if (enableDragRotateMainLight && mainLightTransform != null)
             {
-                mainLight.transform.Rotate(Vector3.up, -curObjRotateSpeed, Space.World);
+                mainLightTransform.Rotate(Vector3.up, -currentTargetYawSpeed, Space.World);
             }
-            else if (targetObj != null)
+            else if (displayTarget != null)
             {
-                targetObj.transform.Rotate(Vector3.up, -curObjRotateSpeed, Space.World);
+                displayTarget.transform.Rotate(Vector3.up, -currentTargetYawSpeed, Space.World);
             }
         }
 
-        curXSpeed += (reqXSpeed - curXSpeed) * Time.deltaTime * 20f;
-        curYSpeed += (reqYSpeed - curYSpeed) * Time.deltaTime * 20f;
-        x += curXSpeed;
-        y -= curYSpeed;
-        y = ClampAngle(y, yMinLimit + normalAngle, yMaxLimit + normalAngle);
+        currentYawSpeed += (requestedYawSpeed - currentYawSpeed) * Time.deltaTime * 20f;
+        currentPitchSpeed += (requestedPitchSpeed - currentPitchSpeed) * Time.deltaTime * 20f;
+        orbitYaw += currentYawSpeed;
+        orbitPitch -= currentPitchSpeed;
+        orbitPitch = ClampAngle(orbitPitch, pitchMinLimit + pitchAngleOffset, pitchMaxLimit + pitchAngleOffset);
 
-        distance -= Input.GetAxis("Mouse ScrollWheel") * ZoomWheelSpeed;
-        distance = Mathf.Clamp(distance, minDistance, maxDistance);
+        orbitDistance -= Input.GetAxis("Mouse ScrollWheel") * scrollZoomSpeed;
+        orbitDistance = Mathf.Clamp(orbitDistance, minOrbitDistance, maxOrbitDistance);
     }
 
-    private void UpdateDraggingState()
+    private void UpdateDragModeOnMouseDown()
     {
-        bool currentLMB = Input.GetMouseButton(0);
-        if (!lastLMBState && currentLMB)
+        bool isLeftMousePressed = Input.GetMouseButton(0);
+        if (!wasLeftMousePressed && isLeftMousePressed)
         {
-            draggingObject = EnableDragObject;
+            isDraggingTarget = enableDragRotateTarget;
         }
-        else if (lastLMBState && !currentLMB)
+        else if (wasLeftMousePressed && !isLeftMousePressed)
         {
-            draggingObject = false;
+            isDraggingTarget = false;
         }
 
-        lastLMBState = currentLMB;
+        wasLeftMousePressed = isLeftMousePressed;
     }
 
-    private void UpdateDistanceBySurfaceCollision()
+    private void UpdateSmoothedDistanceByCollision()
     {
-        if (targetFocus == null)
+        if (orbitFocus == null)
         {
-            curDistance = distance;
+            smoothedOrbitDistance = orbitDistance;
             return;
         }
 
         if (surfaceColliders == null || surfaceColliders.Length == 0)
         {
-            curDistance = distance;
+            smoothedOrbitDistance = orbitDistance;
             return;
         }
 
-        Vector3 viewDir = Vector3.Normalize(targetFocus.position - transform.position);
-        float requiredDistance = 0.01f;
-        bool surfaceFound = false;
-
-        foreach (Collider surfaceCollider in surfaceColliders)
+        Vector3 toFocus = orbitFocus.position - transform.position;
+        if (toFocus.sqrMagnitude < 1e-8f)
         {
-            if (surfaceCollider == null)
+            // 相机与焦点重合时无法构造有效射线，跳过碰撞修正避免 Ray 方向非归一化断言
+            smoothedOrbitDistance = orbitDistance;
+            return;
+        }
+
+        Vector3 viewDirection = toFocus.normalized;
+        float requiredDistance = 0.01f;
+        bool hitSurface = false;
+
+        foreach (Collider collider in surfaceColliders)
+        {
+            if (collider == null)
             {
                 continue;
             }
 
-            if (surfaceCollider.Raycast(new Ray(transform.position - viewDir * boundsMaxSize, viewDir), out RaycastHit hitInfo, Mathf.Infinity))
+            Ray ray = new Ray(transform.position - viewDirection * targetBoundsMaxSize, viewDirection);
+            if (collider.Raycast(ray, out RaycastHit hit, Mathf.Infinity))
             {
-                requiredDistance = Mathf.Max(Vector3.Distance(hitInfo.point, targetFocus.position) + distance, requiredDistance);
-                surfaceFound = true;
+                requiredDistance = Mathf.Max(Vector3.Distance(hit.point, orbitFocus.position) + orbitDistance, requiredDistance);
+                hitSurface = true;
             }
         }
 
-        if (surfaceFound)
+        if (hitSurface)
         {
-            curDistance += (requiredDistance - curDistance) * Time.deltaTime * 4f;
+            smoothedOrbitDistance += (requiredDistance - smoothedOrbitDistance) * Time.deltaTime * 4f;
         }
         else
         {
-            curDistance = distance;
+            smoothedOrbitDistance = orbitDistance;
         }
     }
 
-    private void ApplyCameraTransform()
+    private void ApplyOrbitTransform()
     {
-        if (targetFocus == null)
+        if (orbitFocus == null)
         {
             return;
         }
 
-        Quaternion rotation = Quaternion.Euler(y, x, 0f);
-        Vector3 position = rotation * new Vector3(offset, height, -curDistance) + targetFocus.position;
+        Quaternion rotation = Quaternion.Euler(orbitPitch, orbitYaw, 0f);
+        Vector3 localOffset = new Vector3(orbitOffset, orbitHeight, -smoothedOrbitDistance);
+        Vector3 worldPosition = rotation * localOffset + orbitFocus.position;
         transform.rotation = rotation;
-        transform.position = position;
+        transform.position = worldPosition;
     }
 
-    private void ApplyCameraPreset(CameraPreset preset)
+    private void ApplyCameraPreset(MinoCameraPreset preset)
     {
         if (preset == null)
         {
             return;
         }
 
-        if (activePresetSequence != null && activePresetSequence.IsActive())
+        if (activePresetTween != null && activePresetTween.IsActive())
         {
-            activePresetSequence.Kill();
+            activePresetTween.Kill();
         }
 
-        Vector3 angles = preset.RotateAngles;
-        isApplyingCameraPreset = true;
+        Vector3 angles = preset.eulerAngles;
+        isPresetTransitioning = true;
 
-        activePresetSequence = DOTween.Sequence();
-        activePresetSequence.Join(DOTween.To(() => transform.position, value => transform.position = value, preset.Pos, 0.5f));
-        activePresetSequence.Join(DOTween.To(() => x, value => x = value, angles.y, 0.5f));
-        activePresetSequence.Join(DOTween.To(() => y, value => y = value, angles.x, 0.5f));
-        activePresetSequence.Join(DOTween.To(() => height, value => height = value, preset.height, 0.5f));
-        activePresetSequence.Join(DOTween.To(() => offset, value => offset = value, preset.offset, 0.5f));
-        activePresetSequence.Join(DOTween.To(() => distance, value => distance = value, preset.distance, 0.5f));
-        activePresetSequence.OnKill(() => { isApplyingCameraPreset = false; });
-        activePresetSequence.OnComplete(() => { isApplyingCameraPreset = false; });
+        activePresetTween = DOTween.Sequence();
+        activePresetTween.Join(DOTween.To(() => transform.position, value => transform.position = value, preset.worldPosition, 0.5f));
+        activePresetTween.Join(DOTween.To(() => orbitYaw, value => orbitYaw = value, angles.y, 0.5f));
+        activePresetTween.Join(DOTween.To(() => orbitPitch, value => orbitPitch = value, angles.x, 0.5f));
+        activePresetTween.Join(DOTween.To(() => orbitHeight, value => orbitHeight = value, preset.orbitHeight, 0.5f));
+        activePresetTween.Join(DOTween.To(() => orbitOffset, value => orbitOffset = value, preset.orbitOffset, 0.5f));
+        activePresetTween.Join(DOTween.To(() => orbitDistance, value => orbitDistance = value, preset.orbitDistance, 0.5f));
+        activePresetTween.OnKill(() => { isPresetTransitioning = false; });
+        activePresetTween.OnComplete(() => { isPresetTransitioning = false; });
     }
 
-    private CameraPreset GetPresetByHotkeyIndex(int index)
+#if UNITY_EDITOR
+    private void TryMigrateAllLegacyPresets()
     {
-        if (cameraPresets != null && index >= 0 && index < cameraPresets.Count && cameraPresets[index] != null)
+        if (cameraPresetSlots != null && cameraPresetSlots.Count > 0)
         {
-            return cameraPresets[index];
+            return;
         }
 
-        switch (index)
+        bool migrated = false;
+
+        if (legacyCameraPresetList != null && legacyCameraPresetList.Count > 0)
         {
-            case 0: return CameraPresets1;
-            case 1: return CameraPresets2;
-            case 2: return CameraPresets3;
-            case 3: return CameraPresets4;
-            case 4: return CameraPresets5;
-            case 5: return CameraPresets6;
-            case 6: return CameraPresets7;
-            default: return null;
+            EnsurePresetSlotsInitialized();
+            for (int i = 0; i < legacyCameraPresetList.Count; i++)
+            {
+                MinoCameraPreset legacyView = legacyCameraPresetList[i];
+                if (legacyView == null)
+                {
+                    continue;
+                }
+
+                cameraPresetSlots.Add(CreateSlotFromLegacyView(legacyView, i));
+                migrated = true;
+            }
+
+            legacyCameraPresetList = null;
+        }
+
+        MinoCameraPreset[] legacyPresets =
+        {
+            legacyPreset1, legacyPreset2, legacyPreset3, legacyPreset4,
+            legacyPreset5, legacyPreset6, legacyPreset7
+        };
+
+        bool hasLegacyFields = false;
+        for (int i = 0; i < legacyPresets.Length; i++)
+        {
+            if (legacyPresets[i] != null)
+            {
+                hasLegacyFields = true;
+                break;
+            }
+        }
+
+        if (hasLegacyFields)
+        {
+            EnsurePresetSlotsInitialized();
+            for (int i = 0; i < legacyPresets.Length; i++)
+            {
+                if (legacyPresets[i] == null)
+                {
+                    continue;
+                }
+
+                while (cameraPresetSlots.Count <= i)
+                {
+                    cameraPresetSlots.Add(null);
+                }
+
+                if (cameraPresetSlots[i] == null)
+                {
+                    cameraPresetSlots[i] = CreateSlotFromLegacyView(legacyPresets[i], i);
+                    migrated = true;
+                }
+            }
+
+            legacyPreset1 = null;
+            legacyPreset2 = null;
+            legacyPreset3 = null;
+            legacyPreset4 = null;
+            legacyPreset5 = null;
+            legacyPreset6 = null;
+            legacyPreset7 = null;
+        }
+
+        if (migrated)
+        {
+            ClampCapturePresetIndex();
+            UnityEditor.EditorUtility.SetDirty(this);
         }
     }
 
-    private void ResetCharAndLighting()
+    private static MinoCameraPresetSlot CreateSlotFromLegacyView(MinoCameraPreset view, int index)
     {
-        if (targetObj != null)
+        return new MinoCameraPresetSlot
         {
-            targetObj.transform.rotation = charRotation;
+            presetName = $"机位{index + 1}",
+            activationKey = GetSuggestedKeyForSlotIndex(index),
+            view = view
+        };
+    }
+
+    private void ValidateDuplicateActivationKeys()
+    {
+        if (cameraPresetSlots == null)
+        {
+            return;
         }
 
-        if (mainLight != null)
+        for (int i = 0; i < cameraPresetSlots.Count; i++)
         {
-            mainLight.rotation = lightRotation;
+            MinoCameraPresetSlot slotA = cameraPresetSlots[i];
+            if (slotA == null || slotA.activationKey == KeyCode.None)
+            {
+                continue;
+            }
+
+            for (int j = i + 1; j < cameraPresetSlots.Count; j++)
+            {
+                MinoCameraPresetSlot slotB = cameraPresetSlots[j];
+                if (slotB == null || slotB.activationKey == KeyCode.None)
+                {
+                    continue;
+                }
+
+                if (slotA.activationKey == slotB.activationKey)
+                {
+                    Debug.LogWarning(
+                        $"[MinoCameraController] 机位「{slotA.presetName}」与「{slotB.presetName}」使用了相同快捷键 {slotA.activationKey}。",
+                        this);
+                }
+            }
+        }
+    }
+#endif
+
+    private void ResetTargetAndLightRotation()
+    {
+        if (displayTarget != null)
+        {
+            displayTarget.transform.rotation = initialTargetRotation;
+        }
+
+        if (mainLightTransform != null)
+        {
+            mainLightTransform.rotation = initialMainLightRotation;
         }
     }
 
     private static float ClampAngle(float angle, float min, float max)
     {
-        if (angle < -360f) angle += 360f;
-        if (angle > 360f) angle -= 360f;
+        if (angle < -360f)
+        {
+            angle += 360f;
+        }
+
+        if (angle > 360f)
+        {
+            angle -= 360f;
+        }
+
         return Mathf.Clamp(angle, min, max);
     }
 
@@ -442,25 +1045,36 @@ public class CameraController : MonoBehaviour
         return IsPointerOverUIElement(GetEventSystemRaycastResults());
     }
 
-    private bool IsPointerOverUIElement(List<RaycastResult> eventSystemRaycastResults)
+    private static int GetUiLayer()
     {
-        if (eventSystemRaycastResults == null)
+        if (cachedUiLayer < 0)
+        {
+            cachedUiLayer = LayerMask.NameToLayer("UI");
+        }
+
+        return cachedUiLayer;
+    }
+
+    private static bool IsPointerOverUIElement(List<RaycastResult> raycastResults)
+    {
+        if (raycastResults == null || raycastResults.Count == 0)
         {
             return false;
         }
 
-        for (int i = 0; i < eventSystemRaycastResults.Count; i++)
+        int uiLayer = GetUiLayer();
+        for (int i = 0; i < raycastResults.Count; i++)
         {
-            RaycastResult result = eventSystemRaycastResults[i];
-            if (result.gameObject.layer == LayerMask.NameToLayer("UI"))
+            if (raycastResults[i].gameObject.layer == uiLayer)
             {
                 return true;
             }
         }
+
         return false;
     }
 
-    private static List<RaycastResult> GetEventSystemRaycastResults()
+    private List<RaycastResult> GetEventSystemRaycastResults()
     {
         if (EventSystem.current == null)
         {
@@ -471,8 +1085,8 @@ public class CameraController : MonoBehaviour
         {
             position = Input.mousePosition
         };
-        List<RaycastResult> raycastResults = new List<RaycastResult>();
-        EventSystem.current.RaycastAll(eventData, raycastResults);
-        return raycastResults;
+        uiRaycastResultsCache.Clear();
+        EventSystem.current.RaycastAll(eventData, uiRaycastResultsCache);
+        return uiRaycastResultsCache;
     }
 }

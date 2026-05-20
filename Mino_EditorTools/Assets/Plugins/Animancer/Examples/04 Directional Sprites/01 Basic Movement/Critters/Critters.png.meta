@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 5b54aaa7498024e438d906b1a29048ee
+guid: CigasXv8Anx8P6hvt5B9v87gkMvFDQtYLhWQIte3Sgzvx0koGC9zIT0=
 labels:
 - Animal
 - CC0
@@ -395,7 +395,7 @@ TextureImporter:
       213: 21300254
     second: Spider-Walk-Up-4
   externalObjects: {}
-  serializedVersion: 11
+  serializedVersion: 14
   mipmaps:
     mipMapMode: 0
     enableMipMap: 0
@@ -412,11 +412,15 @@ TextureImporter:
     externalNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
+    flipGreenChannel: 0
   isReadable: 0
+  webStreaming: 0
+  priorityLevel: 0
+  uploadedMode: 2
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
-  ignoreMasterTextureLimit: 0
+  ignoreMipmapLimit: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -455,10 +459,13 @@ TextureImporter:
   textureFormatSet: 0
   ignorePngGamma: 0
   applyGammaDecoding: 1
+  swizzle: 50462976
+  cookieLightType: 1
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
     maxTextureSize: 2048
+    maxPlaceholderSize: 32
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 0
@@ -466,11 +473,13 @@ TextureImporter:
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
+    ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 1
   - serializedVersion: 3
     buildTarget: Standalone
     maxTextureSize: 2048
+    maxPlaceholderSize: 32
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 0
@@ -478,11 +487,13 @@ TextureImporter:
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
+    ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 1
   - serializedVersion: 3
     buildTarget: Android
     maxTextureSize: 2048
+    maxPlaceholderSize: 32
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 0
@@ -490,6 +501,63 @@ TextureImporter:
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: HMIAndroid
+    maxTextureSize: 2048
+    maxPlaceholderSize: 32
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: OpenHarmony
+    maxTextureSize: 2048
+    maxPlaceholderSize: 32
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: Server
+    maxTextureSize: 2048
+    maxPlaceholderSize: 32
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: WeixinMiniGame
+    maxTextureSize: 2048
+    maxPlaceholderSize: 32
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 1
   spriteSheet:
@@ -1850,73 +1918,74 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Chick-Walk-Down-2: 21300162
-      Chick-Walk-Up-1: 21300184
-      Bunny-Walk-Down-4: 21300134
-      Bunny-Walk-Right-2: 21300146
-      Bunny-Walk-Up-3: 21300156
-      Chick-Walk-Left-4: 21300174
-      Chick-Walk-Up-2: 21300186
-      Spider-Walk-Up-1: 21300248
-      Bunny-Walk-Up-1: 21300152
-      Bunny-Walk-Down-3: 21300132
-      Chick-Walk-Left-3: 21300172
-      Chick-Walk-Right-2: 21300178
-      Bunny-Walk-Left-1: 21300136
-      Bunny-Walk-Left-3: 21300140
-      Chick-Walk-Down-3: 21300164
-      Spider-Walk-Up-3: 21300252
-      Slime-Walk-Right-4: 21300214
-      Bunny-Walk-Right-1: 21300144
-      Bunny-Walk-Right-4: 21300150
-      Spider-Walk-Down-3: 21300228
-      Bunny-Walk-Right-3: 21300148
-      Slime-Walk-Left-1: 21300200
-      Bunny-Walk-Up-4: 21300158
-      Chick-Walk-Left-1: 21300168
-      Slime-Walk-Left-3: 21300204
       Bunny-Walk-Down-1: 21300128
-      Spider-Walk-Left-4: 21300238
-      Spider-Walk-Right-4: 21300246
-      Spider-Walk-Left-2: 21300234
-      Slime-Walk-Right-1: 21300208
-      Chick-Walk-Up-4: 21300190
-      Chick-Walk-Down-1: 21300160
-      Bunny-Walk-Up-2: 21300154
-      Chick-Walk-Up-3: 21300188
-      Spider-Walk-Right-2: 21300242
-      Spider-Walk-Down-2: 21300226
-      Slime-Walk-Up-3: 21300220
-      Spider-Walk-Right-1: 21300240
-      Chick-Walk-Right-1: 21300176
-      Slime-Walk-Down-4: 21300198
-      Slime-Walk-Up-1: 21300216
-      Chick-Walk-Left-2: 21300170
-      Slime-Walk-Left-4: 21300206
-      Spider-Walk-Right-3: 21300244
-      Slime-Walk-Down-2: 21300194
-      Spider-Walk-Left-1: 21300232
-      Spider-Walk-Up-4: 21300254
-      Spider-Walk-Down-4: 21300230
-      Spider-Walk-Up-2: 21300250
-      Slime-Walk-Up-4: 21300222
-      Slime-Walk-Down-1: 21300192
-      Slime-Walk-Down-3: 21300196
-      Bunny-Walk-Left-2: 21300138
-      Bunny-Walk-Left-4: 21300142
       Bunny-Walk-Down-2: 21300130
-      Spider-Walk-Left-3: 21300236
+      Bunny-Walk-Down-3: 21300132
+      Bunny-Walk-Down-4: 21300134
+      Bunny-Walk-Left-1: 21300136
+      Bunny-Walk-Left-2: 21300138
+      Bunny-Walk-Left-3: 21300140
+      Bunny-Walk-Left-4: 21300142
+      Bunny-Walk-Right-1: 21300144
+      Bunny-Walk-Right-2: 21300146
+      Bunny-Walk-Right-3: 21300148
+      Bunny-Walk-Right-4: 21300150
+      Bunny-Walk-Up-1: 21300152
+      Bunny-Walk-Up-2: 21300154
+      Bunny-Walk-Up-3: 21300156
+      Bunny-Walk-Up-4: 21300158
+      Chick-Walk-Down-1: 21300160
+      Chick-Walk-Down-2: 21300162
+      Chick-Walk-Down-3: 21300164
       Chick-Walk-Down-4: 21300166
-      Slime-Walk-Left-2: 21300202
-      Slime-Walk-Right-2: 21300210
-      Slime-Walk-Right-3: 21300212
-      Slime-Walk-Up-2: 21300218
-      Spider-Walk-Down-1: 21300224
+      Chick-Walk-Left-1: 21300168
+      Chick-Walk-Left-2: 21300170
+      Chick-Walk-Left-3: 21300172
+      Chick-Walk-Left-4: 21300174
+      Chick-Walk-Right-1: 21300176
+      Chick-Walk-Right-2: 21300178
       Chick-Walk-Right-3: 21300180
       Chick-Walk-Right-4: 21300182
-  spritePackingTag: 
+      Chick-Walk-Up-1: 21300184
+      Chick-Walk-Up-2: 21300186
+      Chick-Walk-Up-3: 21300188
+      Chick-Walk-Up-4: 21300190
+      Slime-Walk-Down-1: 21300192
+      Slime-Walk-Down-2: 21300194
+      Slime-Walk-Down-3: 21300196
+      Slime-Walk-Down-4: 21300198
+      Slime-Walk-Left-1: 21300200
+      Slime-Walk-Left-2: 21300202
+      Slime-Walk-Left-3: 21300204
+      Slime-Walk-Left-4: 21300206
+      Slime-Walk-Right-1: 21300208
+      Slime-Walk-Right-2: 21300210
+      Slime-Walk-Right-3: 21300212
+      Slime-Walk-Right-4: 21300214
+      Slime-Walk-Up-1: 21300216
+      Slime-Walk-Up-2: 21300218
+      Slime-Walk-Up-3: 21300220
+      Slime-Walk-Up-4: 21300222
+      Spider-Walk-Down-1: 21300224
+      Spider-Walk-Down-2: 21300226
+      Spider-Walk-Down-3: 21300228
+      Spider-Walk-Down-4: 21300230
+      Spider-Walk-Left-1: 21300232
+      Spider-Walk-Left-2: 21300234
+      Spider-Walk-Left-3: 21300236
+      Spider-Walk-Left-4: 21300238
+      Spider-Walk-Right-1: 21300240
+      Spider-Walk-Right-2: 21300242
+      Spider-Walk-Right-3: 21300244
+      Spider-Walk-Right-4: 21300246
+      Spider-Walk-Up-1: 21300248
+      Spider-Walk-Up-2: 21300250
+      Spider-Walk-Up-3: 21300252
+      Spider-Walk-Up-4: 21300254
+  mipmapLimitGroupName: 
   pSDRemoveMatte: 0
-  pSDShowRemoveMatteOption: 0
+  doOverrideTextureManagerOperations: 0
+  platformOperationGroupSettings: 
   userData: 
   assetBundleName: 
   assetBundleVariant: 

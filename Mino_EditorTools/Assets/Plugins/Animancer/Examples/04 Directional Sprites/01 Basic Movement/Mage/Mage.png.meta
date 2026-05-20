@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 92ac23722f801e64d8bcf304ece5fcc4
+guid: BnhO5iiuVHliT+lUTjxL1vUV3W7thaoHtJK61BdInzZ0hq7VO17MSZY=
 labels:
 - CC0
 - Example
@@ -59,7 +59,7 @@ TextureImporter:
       213: 21300062
     second: Mage-Walk-Up-4
   externalObjects: {}
-  serializedVersion: 11
+  serializedVersion: 14
   mipmaps:
     mipMapMode: 0
     enableMipMap: 0
@@ -76,11 +76,15 @@ TextureImporter:
     externalNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
+    flipGreenChannel: 0
   isReadable: 0
+  webStreaming: 0
+  priorityLevel: 0
+  uploadedMode: 2
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
-  ignoreMasterTextureLimit: 0
+  ignoreMipmapLimit: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -119,10 +123,13 @@ TextureImporter:
   textureFormatSet: 0
   ignorePngGamma: 0
   applyGammaDecoding: 1
+  swizzle: 50462976
+  cookieLightType: 1
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
     maxTextureSize: 2048
+    maxPlaceholderSize: 32
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 0
@@ -130,11 +137,13 @@ TextureImporter:
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
+    ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 1
   - serializedVersion: 3
     buildTarget: Standalone
     maxTextureSize: 2048
+    maxPlaceholderSize: 32
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 0
@@ -142,11 +151,13 @@ TextureImporter:
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
+    ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 1
   - serializedVersion: 3
     buildTarget: Android
     maxTextureSize: 2048
+    maxPlaceholderSize: 32
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 0
@@ -154,6 +165,63 @@ TextureImporter:
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: HMIAndroid
+    maxTextureSize: 2048
+    maxPlaceholderSize: 32
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: OpenHarmony
+    maxTextureSize: 2048
+    maxPlaceholderSize: 32
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: Server
+    maxTextureSize: 2048
+    maxPlaceholderSize: 32
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: WeixinMiniGame
+    maxTextureSize: 2048
+    maxPlaceholderSize: 32
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 1
   spriteSheet:
@@ -506,25 +574,26 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Mage-Walk-Right-1: 21300048
-      Mage-Walk-Down-3: 21300036
-      Mage-Walk-Right-3: 21300052
-      Mage-Walk-Up-2: 21300058
-      Mage-Walk-Left-3: 21300044
-      Mage-Walk-Left-1: 21300040
-      Mage-Walk-Right-2: 21300050
-      Mage-Walk-Down-4: 21300038
-      Mage-Walk-Left-4: 21300046
       Mage-Walk-Down-1: 21300032
-      Mage-Walk-Left-2: 21300042
       Mage-Walk-Down-2: 21300034
+      Mage-Walk-Down-3: 21300036
+      Mage-Walk-Down-4: 21300038
+      Mage-Walk-Left-1: 21300040
+      Mage-Walk-Left-2: 21300042
+      Mage-Walk-Left-3: 21300044
+      Mage-Walk-Left-4: 21300046
+      Mage-Walk-Right-1: 21300048
+      Mage-Walk-Right-2: 21300050
+      Mage-Walk-Right-3: 21300052
       Mage-Walk-Right-4: 21300054
+      Mage-Walk-Up-1: 21300056
+      Mage-Walk-Up-2: 21300058
       Mage-Walk-Up-3: 21300060
       Mage-Walk-Up-4: 21300062
-      Mage-Walk-Up-1: 21300056
-  spritePackingTag: 
+  mipmapLimitGroupName: 
   pSDRemoveMatte: 0
-  pSDShowRemoveMatteOption: 0
+  doOverrideTextureManagerOperations: 0
+  platformOperationGroupSettings: 
   userData: 
   assetBundleName: 
   assetBundleVariant: 
