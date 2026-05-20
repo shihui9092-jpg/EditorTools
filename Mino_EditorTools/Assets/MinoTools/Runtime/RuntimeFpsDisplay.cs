@@ -245,15 +245,15 @@ public sealed class RuntimeFpsDisplay : MonoBehaviour
 
         EnsureStyles();
 
-        float scale = Settings.panelScale;
-        _labelStyle.fontSize = Mathf.RoundToInt(Settings.fontSize * scale);
+        float layoutScale = GetLayoutScale();
+        _labelStyle.fontSize = Mathf.RoundToInt(Settings.fontSize * layoutScale);
 
         float fps = 1f / Mathf.Max(_smoothedDeltaTime, 0.00001f);
         _labelStyle.normal.textColor = GetFpsColor(fps, Settings);
         _labelStyle.alignment = GetTextAlignment(Settings.anchor);
 
-        MeasureTextContent(_displayText, scale, out float textWidth, out float textHeight);
-        Rect textRect = CalculateTextRect(textWidth, textHeight);
+        MeasureTextContent(_displayText, layoutScale, out float textWidth, out float textHeight);
+        Rect textRect = CalculateTextRect(textWidth, textHeight, layoutScale);
         GUI.Label(textRect, _displayText, _labelStyle);
     }
 
@@ -273,10 +273,27 @@ public sealed class RuntimeFpsDisplay : MonoBehaviour
         textHeight = Mathf.Max(textHeight, _labelStyle.CalcHeight(content, textWidth));
     }
 
-    private Rect CalculateTextRect(float textWidth, float textHeight)
+    /// <summary>
+    /// 综合手动 panelScale 与可选的参考屏高自适应，得到字号/边距/布局宽度所用系数。
+    /// </summary>
+    private static float GetLayoutScale()
     {
         MinoToolsRuntimeFpsBuildSettings config = Settings;
-        float margin = config.margin * config.panelScale;
+        float scale = config.panelScale;
+
+        if (!config.enableResolutionScale)
+            return scale;
+
+        float referenceHeight = Mathf.Max(config.referenceScreenHeight, 1f);
+        float screenHeight = Screen.height > 0f ? Screen.height : referenceHeight;
+        scale *= screenHeight / referenceHeight;
+        return scale;
+    }
+
+    private Rect CalculateTextRect(float textWidth, float textHeight, float layoutScale)
+    {
+        MinoToolsRuntimeFpsBuildSettings config = Settings;
+        float margin = config.margin * layoutScale;
 
         Rect safe = config.useSafeArea
             ? Screen.safeArea

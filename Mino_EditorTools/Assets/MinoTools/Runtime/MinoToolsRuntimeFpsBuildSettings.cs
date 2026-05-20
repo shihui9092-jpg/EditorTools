@@ -38,9 +38,16 @@ public class MinoToolsRuntimeFpsBuildSettings : ScriptableObject
     [Range(10, 24)]
     public int fontSize = 14;
 
-    [Tooltip("面板整体缩放")]
-    [Range(0.75f, 1.5f)]
-    public float panelScale = 1f;
+    [Tooltip("面板整体缩放（在分辨率自适应系数之上叠加；1.5 约为在默认基础上再放大约 0.5 倍）")]
+    [Range(0.75f, 2.5f)]
+    public float panelScale = 1.5f;
+
+    [Tooltip("按当前屏幕高度相对参考高度缩放字号、边距与布局宽度，使多分辨率下视觉比例一致")]
+    public bool enableResolutionScale = true;
+
+    [Tooltip("参考屏幕高度（像素）；实际缩放系数 = 当前屏高 / 本值")]
+    [Min(480f)]
+    public float referenceScreenHeight = 1080f;
 
     [Tooltip("使用 Screen.safeArea，适配刘海屏/全面屏")]
     public bool useSafeArea = true;

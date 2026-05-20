@@ -22,7 +22,9 @@ MonoBehaviour:
   anchor: 1
   margin: 10
   fontSize: 14
-  panelScale: 1
+  panelScale: 1.5
+  enableResolutionScale: 1
+  referenceScreenHeight: 1080
   useSafeArea: 1
   greenFpsThreshold: 55
   yellowFpsThreshold: 30
