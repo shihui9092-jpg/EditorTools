@@ -227,6 +227,7 @@ GameObject:
   - component: {fileID: 524037459}
   - component: {fileID: 524037458}
   - component: {fileID: 524037461}
+  - component: {fileID: 524037462}
   m_Layer: 0
   m_HasEditorInfo: 1
   m_Name: Main Camera
@@ -360,6 +361,90 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
+--- !u!114 &524037462
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 524037457}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd148ac356168a645870f84dd4acdf05, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  orbitFocus: {fileID: 0}
+  displayTarget: {fileID: 0}
+  mainLightTransform: {fileID: 0}
+  enableDragRotateTarget: 0
+  enableDragRotateMainLight: 0
+  orbitHeight: 0
+  orbitOffset: 0
+  orbitDistance: 3.5
+  scrollZoomSpeed: 4
+  minOrbitDistance: 1
+  maxOrbitDistance: 4
+  orbitYawSpeed: 250
+  orbitPitchSpeed: 120
+  pitchMinLimit: -10
+  pitchMaxLimit: 60
+  targetYawRotateSpeed: 500
+  cameraPresetSlots:
+  - presetName: "\u9ED8\u8BA4\u673A\u4F4D"
+    activationKey: 49
+    view:
+      worldPosition: {x: 0, y: 0, z: 0}
+      eulerAngles: {x: 0, y: 0, z: 0}
+      orbitHeight: 0
+      orbitOffset: 0
+      orbitDistance: 0
+  legacyCameraPresetList: []
+  legacyPreset1:
+    worldPosition: {x: 0, y: 0, z: 0}
+    eulerAngles: {x: 0, y: 0, z: 0}
+    orbitHeight: 0
+    orbitOffset: 0
+    orbitDistance: 0
+  legacyPreset2:
+    worldPosition: {x: 0, y: 0, z: 0}
+    eulerAngles: {x: 0, y: 0, z: 0}
+    orbitHeight: 0
+    orbitOffset: 0
+    orbitDistance: 0
+  legacyPreset3:
+    worldPosition: {x: 0, y: 0, z: 0}
+    eulerAngles: {x: 0, y: 0, z: 0}
+    orbitHeight: 0
+    orbitOffset: 0
+    orbitDistance: 0
+  legacyPreset4:
+    worldPosition: {x: 0, y: 0, z: 0}
+    eulerAngles: {x: 0, y: 0, z: 0}
+    orbitHeight: 0
+    orbitOffset: 0
+    orbitDistance: 0
+  legacyPreset5:
+    worldPosition: {x: 0, y: 0, z: 0}
+    eulerAngles: {x: 0, y: 0, z: 0}
+    orbitHeight: 0
+    orbitOffset: 0
+    orbitDistance: 0
+  legacyPreset6:
+    worldPosition: {x: 0, y: 0, z: 0}
+    eulerAngles: {x: 0, y: 0, z: 0}
+    orbitHeight: 0
+    orbitOffset: 0
+    orbitDistance: 0
+  legacyPreset7:
+    worldPosition: {x: 0, y: 0, z: 0}
+    eulerAngles: {x: 0, y: 0, z: 0}
+    orbitHeight: 0
+    orbitOffset: 0
+    orbitDistance: 0
+  isCameraLocked: 0
+  capturePresetIndex: 0
+  disableInput: 0
+  isPresetTransitioning: 0
 --- !u!1 &555180548
 GameObject:
   m_ObjectHideFlags: 0

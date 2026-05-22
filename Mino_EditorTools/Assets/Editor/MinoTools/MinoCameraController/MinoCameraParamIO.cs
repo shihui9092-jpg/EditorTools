@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,7 +13,7 @@ public static class MinoCameraParamIO
     private const string ConfigFileExtensionWithoutDot = "minocamera.json";
 
     /// <summary>MinoCameraController 脚本所在资源目录。</summary>
-    private const string ScriptAssetFolder = "Assets/Scripts/MinoScripts/MinoCameraController";
+    private const string ScriptAssetFolder = "Assets/Plugins/MinoTools/MinoCameraController";
 
     /// <summary>导出相机参数 JSON 的专用子文件夹（语义：相机参数配置档案）。</summary>
     private const string ExportProfilesFolderName = "CameraParameterProfiles";
@@ -64,7 +65,7 @@ public static class MinoCameraParamIO
 
         MinoCameraParameterConfigBundle bundle = CreateBundleFromController(controller);
         string bundleJson = JsonUtility.ToJson(bundle, false);
-        File.WriteAllText(fullPath, bundleJson);
+        File.WriteAllText(fullPath, bundleJson, Encoding.UTF8);
         AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
 
         UnityEngine.Object exportedAsset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetPath);
@@ -488,6 +489,6 @@ public static class MinoCameraParamIO
             return null;
         }
 
-        return File.ReadAllText(openPath);
+        return File.ReadAllText(openPath, Encoding.UTF8);
     }
 }
