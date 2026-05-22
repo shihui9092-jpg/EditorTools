@@ -3,4 +3,6 @@ Logs/
 Packages/
 ProjectSettings/
 Temp/
-UserSettings
+UserSettings/
+.funplay/
+.vscode/
